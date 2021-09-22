@@ -1,0 +1,91 @@
+{
+  "name": "java-enum-transform",
+  "version": "1.0.0",
+  "description": "Java enum transform to typescript",
+  "author": "余聪 <yucong@yuanfudao.com>",
+  "scripts": {
+    "test": "npx jest",
+    "test:watch": "npm test -- --watch",
+    "preversion": "npm test",
+    "postpublish": "git push --tag origin $(git rev-parse --abbrev-ref HEAD)",
+    "build": "npm run clean && run-p --print-label \"build:**\"",
+    "dev": "TSC_OPTIONS=\"--watch\" npm run build",
+    "build:es": "tsc $TSC_OPTIONS --outDir es --module es6",
+    "build:cjs": "tsc $TSC_OPTIONS --outDir lib",
+    "build:tds": "tsc $TSC_OPTIONS --emitDeclarationOnly -d",
+    "clean": "rimraf types es lib",
+    "prepare": "npm run build",
+    "version": "npm run changelog",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged",
+      "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS"
+    }
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=10"
+  },
+  "files": [
+    "es",
+    "types",
+    "lib"
+  ],
+  "keywords": [
+    "余聪",
+    "java",
+    "enum",
+    "transform",
+    "typescript",
+    "ts",
+    "java-enum-transform"
+  ],
+  "main": "lib",
+  "types": "types",
+  "license": "MIT",
+  "repository": "余聪/java-enum-transform",
+  "module": "es",
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest",
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testMatch": [
+      "**/__test{s,}__/*.(spec|test).{t,j}s{x,}"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^13.1.0",
+    "@commitlint/config-conventional": "^13.1.0",
+    "@types/jest": "^27.0.2",
+    "conventional-changelog-cli": "^2.1.1",
+    "husky": "^4.3.8",
+    "jest": "^27.2.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.4.1",
+    "pretty-quick": "^3.1.1",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "globby": "^11.0.4",
+    "fs-extra": "^10.0.0",
+    "java-parser": "^1.4.0"
+  }
+}
