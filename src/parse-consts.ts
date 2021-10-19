@@ -10,9 +10,6 @@ import {
   IntegerLiteralCtx,
   IToken
 } from 'java-parser'
-import * as globby from 'globby'
-import * as nps from 'path'
-import * as fsExtra from 'fs-extra'
 
 class ParseImportsByCode extends BaseJavaCstVisitorWithDefaults {
   public data: Array<{
@@ -56,14 +53,14 @@ export function parseByCode(code: string) {
   }
 }
 
-export async function parseConsts(path: string) {
-  const filenames = await globby(['**/*.java'], { cwd: nps.resolve(path), absolute: false, onlyFiles: true })
-
-  const obj = {}
-  await Promise.all(
-    filenames.map(async (name) => {
-      obj[name.replace(/\..+?$/, '')] = await parseByCode(fsExtra.readFile(nps.resolve(name), 'utf8'))
-    })
-  )
-  return obj
-}
+// export async function parseConsts(path: string) {
+//   const filenames = await globby(['**/*.java'], { cwd: nps.resolve(path), absolute: false, onlyFiles: true })
+//
+//   const obj = {}
+//   await Promise.all(
+//     filenames.map(async (name) => {
+//       obj[name.replace(/\..+?$/, '')] = await parseByCode(fsExtra.readFile(nps.resolve(name), 'utf8'))
+//     })
+//   )
+//   return obj
+// }
