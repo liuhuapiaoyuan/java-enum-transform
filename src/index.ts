@@ -22,7 +22,7 @@ export interface JavaEnumTransformByDirOptions {
 
 export async function javaEnumTransformByDir(
   dir: string,
-  { ignore, pattern = '**/*.java', deRef = true }: JavaEnumTransformByDirOptions = {}
+  { ignore = [], pattern = '**/*.java', deRef = true }: JavaEnumTransformByDirOptions = {}
 ) {
   const filenames = await globby(pattern, {
     absolute: true,
