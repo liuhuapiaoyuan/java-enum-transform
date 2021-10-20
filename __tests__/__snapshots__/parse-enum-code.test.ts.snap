@@ -18,5 +18,11 @@ exports[`parseEnumCode should spec 2`] = `
    * 用户
    */
   USER_X = 's',
-}"
+}
+export const RoleTypeOptions = [
+  { label: \\"开发者\\", value: RoleType[\\"DEVELOPER\\"] },
+  { label: \\"管理xx\\", value: RoleType[\\"ADMIN\\"] },
+  { label: \\"用户\\", value: RoleType[\\"USER\\"] },
+  { label: \\"用户\\", value: RoleType[\\"USER_X\\"] },
+]"
 `;
