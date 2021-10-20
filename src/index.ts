@@ -31,6 +31,7 @@ export async function javaEnumTransformByDir(
     cwd: dir
   })
 
+  const tmpFileMap = new Map<string, FileData>()
   const fileMap = new Map<string, FileData>()
   await Promise.all(
     filenames.map(async (filename) => {
@@ -39,7 +40,7 @@ export async function javaEnumTransformByDir(
       const meta = parseFileMeta(ast, { filename, classPath: dir })
       const id = meta.package ? meta.package.concat(meta.name).join('.') : null
       if (id) {
-        fileMap.set(id, {
+        tmpFileMap.set(id, {
           id,
           meta,
           code,
@@ -48,6 +49,12 @@ export async function javaEnumTransformByDir(
       }
     })
   )
+
+  const sortedKeys = Array.from(tmpFileMap.keys()).sort()
+  sortedKeys.forEach((name) => {
+    fileMap.set(name, tmpFileMap.get(name))
+    tmpFileMap.delete(name)
+  })
 
   const deRefOptions = {
     _visitMap: new Map(),
