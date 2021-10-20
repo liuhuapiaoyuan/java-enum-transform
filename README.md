@@ -9,6 +9,28 @@
 
 > Java enum transform
 
+### Input
+
+```java
+class enum User {
+  ADMIN(1, "管理员"),
+  DEVELOPER(2, "开发人员");
+}
+```
+
+### Output
+
+```typescript
+export const enum UserEnum {
+  ADMIN = 1,
+  DEVELOPER = 2
+}
+export const UserEnumOptions = [
+  { label: '管理员', value: UserEnum['ADMIN'] },
+  { label: '开发人员', value: UserEnum['DEVELOPER'] }
+]
+```
+
 ## Installation
 
 ```bash
@@ -20,7 +42,9 @@ yarn add java-enum-transform
 ## Usage
 
 ```javascript
-import javaEnumTransform from 'java-enum-transform'
+import { javaEnumTransformByDir, resultToCode } from 'java-enum-transform'
+
+const enumCode = resultToCode(await javaEnumTransformByDir('path/to/java'))
 ```
 
 ## Contributing
