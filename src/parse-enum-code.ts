@@ -1,16 +1,24 @@
 import {
   CstNode,
   BaseJavaCstVisitorWithDefaults,
-  BaseJavaCstVisitor,
   parse,
   ClassDeclarationCtx,
   EnumDeclarationCtx,
-  EnumConstantCtx,
-  ExpressionCtx,
-  IntegerLiteralCstNode,
-  IntegerLiteralCtx,
-  IToken
+  EnumConstantCtx
 } from 'java-parser'
+import { pascalCase } from 'change-case'
+
+function evalJava(code: string) {
+  if (/^([-+]?)(\d+)L$/.test(code)) {
+    code = RegExp.$1 + RegExp.$2
+  }
+  try {
+    return eval(code)
+  } catch (e) {
+    e.message = `Eval 执行 ${JSON.stringify(code)} 错误：${e.message}`
+    throw e
+  }
+}
 
 class ExpressionValueVisitor extends BaseJavaCstVisitorWithDefaults {
   public data: {
@@ -18,17 +26,36 @@ class ExpressionValueVisitor extends BaseJavaCstVisitorWithDefaults {
     raw: string
     value: any
   }
+
+  state = {
+    prefix: null
+  }
+
   setData(raw: any, type = 'primitive') {
+    if (this.data) {
+      this.data = null
+      return
+    }
+    raw = this.state.prefix != null ? this.state.prefix + raw : raw
     let value = raw
     if (type === 'primitive') {
-      value = eval(raw)
+      value = evalJava(raw)
     }
     this.data = {
       value,
       type,
       raw
     } as any
+    this.state.prefix = null
   }
+
+  unaryExpression(ctx) {
+    if (ctx.UnaryPrefixOperator) {
+      this.state.prefix = ctx.UnaryPrefixOperator[0].image
+    }
+    return super.unaryExpression(ctx)
+  }
+
   integerLiteral(ctx) {
     if (ctx.DecimalLiteral) {
       this.setData(ctx.DecimalLiteral[0].image)
@@ -75,20 +102,25 @@ class ExpressionValueVisitor extends BaseJavaCstVisitorWithDefaults {
   }
 
   fqnOrRefType(ctx) {
+    if (this.data) {
+      this.data = null
+      return
+    }
+
     const firstImg = ctx.fqnOrRefTypePartFirst[0].children.fqnOrRefTypePartCommon[0].children.Identifier[0].image
-    const imgs = ctx.fqnOrRefTypePartRest.map(
+    const imgs = (ctx.fqnOrRefTypePartRest || []).map(
       (rest) => rest.children.fqnOrRefTypePartCommon[0].children.Identifier[0].image
     )
     const value = [firstImg].concat(imgs)
     this.data = {
       type: 'fqnOrRefType',
       value,
-      raw: JSON.stringify(value.join('.'))
+      raw: value.join('.')
     }
   }
 }
 
-function getExpressionValue(cst: any) {
+export function getExpressionValue(cst: any) {
   const v = new ExpressionValueVisitor()
   v.visit(cst)
   return v.data
@@ -193,13 +225,22 @@ export function parseEnumCode(codeOrAst: string | CstNode) {
   return visitor.data
 }
 
-export function formatToTs(data: Visitor['data']) {
+export function formatToTs(
+  data: Visitor['data'],
+  { transformEnumName = (s) => s }: { transformEnumName?: (name: string) => string } = {}
+) {
   return data
     .map((x) => {
       const enumBodyString = x.enums
         .map((enumData) => {
           if (enumData.value.type === 'primitive') {
-            return `  ${enumData.name} = ${enumData.value.raw},`
+            const comment =
+              enumData.label?.value != null
+                ? `  /**
+   * ${enumData.label.value}
+   */`
+                : ''
+            return `${comment ? `${comment}\n` : ''}  ${enumData.name} = ${enumData.value.raw},`
           }
           return ''
         })
@@ -208,9 +249,28 @@ export function formatToTs(data: Visitor['data']) {
       if (!enumBodyString) {
         return ''
       }
+
+      const name = transformEnumName(x.enumClass)
+      const optionsString = x.enums
+        .map((enumData) => {
+          if (enumData.value.type === 'primitive' && enumData.label?.raw) {
+            return `  { label: ${enumData.label?.raw}, value: ${name}[${JSON.stringify(enumData.name)}] },`
+          }
+          return ''
+        })
+        .filter(Boolean)
+        .join('\n')
+
       return `
-export enum ${x.enumClass} {
+export const enum ${name} {
 ${enumBodyString}
+}
+${
+  optionsString
+    ? `export const ${pascalCase(name + ' Options')} = [
+${optionsString}
+]`
+    : ''
 }
 `.trim()
     })

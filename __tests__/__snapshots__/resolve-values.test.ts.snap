@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`resolve-values resolveImportsValue 1`] = `
+Map {
+  "A" => Map {
+    "a" => Object {
+      "static": true,
+      "value": Object {
+        "raw": "'a'",
+        "type": "primitive",
+        "value": "a",
+      },
+    },
+  },
+  "B" => Map {
+    "b" => Object {
+      "static": true,
+      "value": Object {
+        "raw": "\\"b\\"",
+        "type": "primitive",
+        "value": "b",
+      },
+    },
+  },
+  "Foo" => Map {
+    "count" => Object {
+      "static": true,
+      "value": Object {
+        "raw": "1",
+        "type": "primitive",
+        "value": 1,
+      },
+    },
+    "isOk" => Object {
+      "static": true,
+      "value": Object {
+        "raw": "true",
+        "type": "primitive",
+        "value": true,
+      },
+    },
+    "name" => Object {
+      "static": false,
+      "value": Object {
+        "raw": "\\"imcuttle\\"",
+        "type": "primitive",
+        "value": "imcuttle",
+      },
+    },
+    "computed_1" => Object {
+      "static": false,
+      "value": Object {
+        "raw": "b",
+        "type": "fqnOrRefType",
+        "value": Array [
+          "b",
+        ],
+      },
+    },
+  },
+  "count" => Object {
+    "static": true,
+    "value": Object {
+      "raw": "1",
+      "type": "primitive",
+      "value": 1,
+    },
+  },
+  "isOk" => Object {
+    "static": true,
+    "value": Object {
+      "raw": "true",
+      "type": "primitive",
+      "value": true,
+    },
+  },
+}
+`;
