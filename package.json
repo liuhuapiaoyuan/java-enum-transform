@@ -1,6 +1,6 @@
 {
   "name": "java-enum-transform",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Java enum transform to typescript",
   "author": "余聪 <yucong@yuanfudao.com>",
   "scripts": {
