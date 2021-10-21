@@ -12,7 +12,7 @@ import { formatToTs, parseEnumCode } from './parse-enum-code'
 import { Meta, parseFileMeta } from './parse-file'
 import { resolveExpressionValue } from './resolve-values'
 
-type FileData = { id: string; meta: Meta; code: string; ast: CstNode }
+type FileData = { id: string; meta: Meta; ast: CstNode }
 
 export interface JavaEnumTransformByDirOptions {
   deRef?: boolean
@@ -43,7 +43,6 @@ export async function javaEnumTransformByDir(
         tmpFileMap.set(id, {
           id,
           meta,
-          code,
           ast
         })
       }
