@@ -12,9 +12,24 @@
 ### Input
 
 ```java
-class enum User {
+// User.java
+package com.example.foo;
+
+import com.example.foo.Consts;
+
+public class enum User {
   ADMIN(1, "管理员"),
   DEVELOPER(2, "开发人员");
+  OWNER(Consts.OWNER, "拥有者");
+}
+```
+
+```java
+// Consts.java
+package com.example.foo;
+
+public class Consts {
+  public static int OWNER = 3;
 }
 ```
 
@@ -22,12 +37,23 @@ class enum User {
 
 ```typescript
 export const enum UserEnum {
+  /**
+   * 管理员
+   */
   ADMIN = 1,
-  DEVELOPER = 2
+  /**
+   * 开发人员
+   */
+  DEVELOPER = 2,
+  /**
+   * 拥有者
+   */
+  OWNER = 3
 }
 export const UserEnumOptions = [
   { label: '管理员', value: UserEnum['ADMIN'] },
-  { label: '开发人员', value: UserEnum['DEVELOPER'] }
+  { label: '开发人员', value: UserEnum['DEVELOPER'] },
+  { label: '拥有者', value: UserEnum['OWNER'] }
 ]
 ```
 
