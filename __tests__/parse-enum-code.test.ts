@@ -88,5 +88,6 @@ Array [
 ]
 `)
     expect(formatToTs(parseEnumCode(await readContent('com/example/models/RoleEnum.java')))).toMatchSnapshot()
+    expect(formatToTs(parseEnumCode(await readContent('com/example/consts/ACLResource.java')))).toMatchSnapshot()
   })
 })

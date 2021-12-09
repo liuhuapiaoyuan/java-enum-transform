@@ -26,3 +26,5 @@ export const RoleTypeOptions = [
   { label: \\"用户\\", value: RoleType[\\"USER_X\\"] },
 ]"
 `;
+
+exports[`parseEnumCode should spec 3`] = `""`;

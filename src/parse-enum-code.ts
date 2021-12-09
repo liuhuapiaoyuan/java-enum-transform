@@ -197,6 +197,9 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
 
   enumConstant(ctx: EnumConstantCtx, param?: any): any {
     if (this.isVisiting()) {
+      if (!ctx.argumentList?.[0]) {
+        return
+      }
       let value
       let label
       if (
