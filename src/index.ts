@@ -8,7 +8,7 @@ import * as fsExtra from 'fs-extra'
 import * as lazy from 'lazy-value'
 import { pascalCase } from 'change-case'
 import { CstNode, parse } from 'java-parser'
-import { formatToTs, parseEnumCode } from './parse-enum-code'
+import { formatItemToTs, formatToTs, parseEnumCode } from './parse-enum-code'
 import { Meta, parseFileMeta } from './parse-file'
 import { resolveExpressionValue } from './resolve-values'
 
@@ -138,6 +138,21 @@ export function resultToCode(map: Map<string, ReturnType<typeof parseEnumCode>>)
       }
       cache.set(name, cache.get(name) + 1)
       return `${name}${cache.get(name)}`
+    }
+  })
+}
+/**
+ * 单个文件独立渲染
+ * @param item
+ * @returns
+ */
+export function resultItemToCode(item: ReturnType<typeof parseEnumCode>[0]) {
+  return formatItemToTs(item, {
+    transformEnumName: (name) => {
+      if (!/enum$/i.test(name)) {
+        name = pascalCase(name + ' enum')
+      }
+      return name
     }
   })
 }

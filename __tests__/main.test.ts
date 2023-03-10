@@ -5,15 +5,12 @@
  */
 import { javaEnumTransformByDir, resultToCode } from '../src'
 import { fixture } from './helper'
-
 describe('javaEnumTransform', function () {
   it('should spec', async function () {
     const data = await javaEnumTransformByDir(fixture(''), {
       ignore: ['**/example/**']
     })
-    // console.log(resultToCode(data))
-    expect(resultToCode(data)).toMatchInlineSnapshot(`
-"export const enum ChangeTypeEnum {
+    expect(resultToCode(data)).toMatchInlineSnapshot(`"export const enum ChangeTypeEnum {
   /**
    * 未变化
    */
@@ -52,9 +49,19 @@ export const LockPrefixEnumOptions = [
   { label: \\"recordingTask\\", value: LockPrefixEnum[\\"RECORDING_TASK\\"] },
 ]
 export const enum LogOrderByEnum {
-  CREATED_TIME_DESC = \\"createdTimeDesc\\",
-  CREATED_TIME_ASC = \\"createdTimeAsc\\",
+  /**
+   * createdTimeDesc
+   */
+  CREATED_TIME_DESC = \\"CREATED_TIME_DESC\\",
+  /**
+   * createdTimeAsc
+   */
+  CREATED_TIME_ASC = \\"CREATED_TIME_ASC\\",
 }
+export const LogOrderByEnumOptions = [
+  { label: \\"createdTimeDesc\\", value: LogOrderByEnum[\\"CREATED_TIME_DESC\\"] },
+  { label: \\"createdTimeAsc\\", value: LogOrderByEnum[\\"CREATED_TIME_ASC\\"] },
+]
 export const enum RecordingTaskRoleEnum {
   /**
    * recorder
@@ -242,6 +249,18 @@ export const FeedbackTargetTypeEnumOptions = [
   { label: \\"试卷\\", value: FeedbackTargetTypeEnum[\\"EXAM_PAPER\\"] },
   { label: \\"录入任务\\", value: FeedbackTargetTypeEnum[\\"RECORDING_TASK\\"] },
 ]
+export const enum FeedbackTypeEnum {
+  APPLICATION_NEED_REVISED = \\"APPLICATION_NEED_REVISED\\",
+  APPLICATION_REJECTED = \\"APPLICATION_REJECTED\\",
+  APPLICATION_APPROVED = \\"APPLICATION_APPROVED\\",
+  APPLICATION_CANCELED = \\"APPLICATION_CANCELED\\",
+  QUESTION_APPROVED = \\"QUESTION_APPROVED\\",
+  QUESTION_AUDIT_FAILED = \\"QUESTION_AUDIT_FAILED\\",
+  QUESTION_NEED_REVISED = \\"QUESTION_NEED_REVISED\\",
+  PAPER_AUDIT_APPROVED = \\"PAPER_AUDIT_APPROVED\\",
+  PAPER_AUDIT_FAILED = \\"PAPER_AUDIT_FAILED\\",
+  TASK_AUDIT_FAILED = \\"TASK_AUDIT_FAILED\\",
+}
 export const enum QuestionRecordingTaskStageEnum {
   /**
    * 暂不可用
@@ -410,7 +429,6 @@ export const RecordingTaskStageEnumOptions = [
   { label: \\"审核通过待标注\\", value: RecordingTaskStageEnum[\\"AUDITED\\"] },
   { label: \\"已发布\\", value: RecordingTaskStageEnum[\\"PUBLISHED\\"] },
   { label: \\"已取消\\", value: RecordingTaskStageEnum[\\"CANCELED\\"] },
-]"
-`)
+]"`)
   })
 })

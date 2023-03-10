@@ -200,23 +200,27 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
       if (!ctx.argumentList?.[0]) {
         return
       }
-      let value
-      let label
-      if (
-        // 两个参数
-        // eg. `USER(1, "用户")`
-        (ctx.argumentList[0].children?.expression?.length === 2 ||
-          ctx.argumentList[0].children?.expression?.length === 1) &&
-        (value = getExpressionValue(ctx.argumentList[0].children.expression[0]))
-      ) {
-        label =
-          ctx.argumentList[0].children.expression[1] && getExpressionValue(ctx.argumentList[0].children.expression[1])
-        this.state.enums.push({
-          name: ctx.Identifier[0].image,
-          label,
-          value
-        })
+      const paramsLength = ctx.argumentList[0].children?.expression?.length
+      let result = {
+        name: ctx.Identifier[0].image,
+        value: {
+          type: 'primitive',
+          value: ctx.Identifier[0].image,
+          raw: `"${ctx.Identifier[0].image}"`
+        },
+        label: undefined
       }
+      if (paramsLength == 0) {
+        // 当参数长度是0的时候 也没有label 没有value
+      } else if (paramsLength == 1) {
+        // 参数长度为1的时候，第一个参数就是label
+        result.label = getExpressionValue(ctx.argumentList[0].children.expression[0])
+      } else if (paramsLength == 2) {
+        // 第一个参数是VALUE，第二个参数是LABEL
+        result.value = getExpressionValue(ctx.argumentList[0].children.expression[0])
+        result.label = getExpressionValue(ctx.argumentList[0].children.expression[1])
+      }
+      this.state.enums.push(result)
     }
   }
 }
@@ -226,6 +230,62 @@ export function parseEnumCode(codeOrAst: string | CstNode) {
   const visitor = new Visitor()
   visitor.visit(ast)
   return visitor.data
+}
+
+type ArrayItem<T> = T extends Array<infer U> ? U : T
+
+/**
+ * 转换当个文件
+ * @param x
+ * @param param1
+ * @returns
+ */
+export function formatItemToTs(
+  x: ArrayItem<Visitor['data']>,
+  { transformEnumName = (s) => s }: { transformEnumName?: (name: string) => string } = {}
+) {
+  const enumBodyString = x.enums
+    .map((enumData) => {
+      if (enumData.value.type === 'primitive') {
+        const comment =
+          enumData.label?.value != null
+            ? `  /**
+* ${enumData.label.value}
+*/`
+            : ''
+        return `${comment ? `${comment}\n` : ''}  ${enumData.name} = ${enumData.value.raw},`
+      }
+      return ''
+    })
+    .filter(Boolean)
+    .join('\n')
+  if (!enumBodyString) {
+    return ''
+  }
+
+  const name = transformEnumName(x.enumClass)
+  const optionsString = x.enums
+    .map((enumData) => {
+      if (enumData.value.type === 'primitive' && enumData.label?.raw) {
+        return `  { label: ${enumData.label?.raw}, value: ${name}[${JSON.stringify(enumData.name)}] },`
+      }
+      return ''
+    })
+    .filter(Boolean)
+    .join('\n')
+
+  return `
+export const enum ${name} {
+${enumBodyString}
+}
+${
+  optionsString
+    ? `export const ${pascalCase(name + ' Options')} = [
+${optionsString}
+]`
+    : ''
+}
+`.trim()
 }
 
 export function formatToTs(
