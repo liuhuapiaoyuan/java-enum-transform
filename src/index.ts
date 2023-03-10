@@ -146,8 +146,8 @@ export function resultToCode(map: Map<string, ReturnType<typeof parseEnumCode>>)
  * @param item
  * @returns
  */
-export function resultItemToCode(item: ReturnType<typeof parseEnumCode>[0]) {
-  return formatItemToTs(item, {
+export function resultItemToCode(item: ReturnType<typeof parseEnumCode>) {
+  return formatToTs(item, {
     transformEnumName: (name) => {
       if (!/enum$/i.test(name)) {
         name = pascalCase(name + ' enum')

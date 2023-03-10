@@ -197,10 +197,7 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
 
   enumConstant(ctx: EnumConstantCtx, param?: any): any {
     if (this.isVisiting()) {
-      if (!ctx.argumentList?.[0]) {
-        return
-      }
-      const paramsLength = ctx.argumentList[0].children?.expression?.length
+      // 五参数
       let result = {
         name: ctx.Identifier[0].image,
         value: {
@@ -210,12 +207,22 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
         },
         label: undefined
       }
+      /*     if (!ctx.argumentList?.[0]) {
+        return
+      } */
+      const paramsLength = ctx.argumentList?.[0]?.children?.expression?.length ?? 0
+
       if (paramsLength == 0) {
         // 当参数长度是0的时候 也没有label 没有value
+        result.label = {
+          type: 'primitive',
+          value: ctx.Identifier[0].image,
+          raw: `"${ctx.Identifier[0].image}"`
+        }
       } else if (paramsLength == 1) {
         // 参数长度为1的时候，第一个参数就是label
         result.label = getExpressionValue(ctx.argumentList[0].children.expression[0])
-      } else if (paramsLength == 2) {
+      } else if (paramsLength >= 2) {
         // 第一个参数是VALUE，第二个参数是LABEL
         result.value = getExpressionValue(ctx.argumentList[0].children.expression[0])
         result.label = getExpressionValue(ctx.argumentList[0].children.expression[1])

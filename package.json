@@ -7,7 +7,6 @@
     "test": "npx jest",
     "test:watch": "npm test -- --watch",
     "preversion": "npm test",
-    "postpublish": "git push --tag origin $(git rev-parse --abbrev-ref HEAD)",
     "build": "npm run clean && run-p --print-label \"build:**\"",
     "dev": "npm run clean &&  tsc --watch  --outDir es --module es6 --sourceMap false",
     "build:es": "tsc   --outDir es --module es6 --sourceMap false",
