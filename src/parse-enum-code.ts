@@ -321,7 +321,7 @@ export function formatItemToTs(
   const labelsString = x.enums
     .map((enumData) => {
       if (enumData.value.type === 'primitive' && enumData.label?.raw) {
-        return `  {  ${enumData.name}: ${enumData.label.raw}  },`
+        return `  { ${enumData.name}: ${enumData.label.raw} },`
       }
       return ''
     })
@@ -338,7 +338,7 @@ ${
 ${optionsString}
 ]
 export const ${pascalCase(name + ' Labels')} = [
-  ${labelsString}
+${labelsString}
 ]
 `
     : ''
