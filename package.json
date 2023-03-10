@@ -1,6 +1,6 @@
 {
   "name": "@suntree/java-enum-transform",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Java enum transform to typescript",
   "author": "from 余聪 <yucong@yuanfudao.com>",
   "scripts": {
