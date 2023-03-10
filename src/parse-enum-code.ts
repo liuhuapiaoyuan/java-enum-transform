@@ -238,11 +238,13 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
         const paramsLength = enumCtx.argumentList?.[0]?.children?.expression?.length ?? 0
 
         if (paramsLength == 0) {
-          // 当参数长度是0的时候 也没有label 没有value
-          result.label = {
-            type: 'primitive',
-            value: enumCtx.Identifier[0].image,
-            raw: `"${enumCtx.Identifier[0].image}"`
+          if (!commentLabel) {
+            // 当参数长度是0的时候 也没有label 没有value
+            result.label = {
+              type: 'primitive',
+              value: enumCtx.Identifier[0].image,
+              raw: `"${enumCtx.Identifier[0].image}"`
+            }
           }
         } else if (paramsLength == 1) {
           // 参数长度为1的时候，第一个参数就是label(如果說這個label是英文，可以当value 并且有comment的情况共)
@@ -250,7 +252,7 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
           //let isValidName = /^[^\d\W\s]+\w*$/.test(param1.value)
           if (typeof commentLabel !== 'undefined' && param1.type == 'primitive') {
             result.value = param1
-            result.label = param1
+            result.label = commentLabel
           } else {
             result.label = param1
           }
@@ -319,7 +321,7 @@ export function formatItemToTs(
   const labelsString = x.enums
     .map((enumData) => {
       if (enumData.value.type === 'primitive' && enumData.label?.raw) {
-        return `  {  ${enumData.value.raw}: ${enumData.name}  },`
+        return `  {  ${enumData.name}: ${enumData.label.raw}  },`
       }
       return ''
     })
@@ -338,7 +340,6 @@ ${optionsString}
 export const ${pascalCase(name + ' Labels')} = [
   ${labelsString}
 ]
-
 `
     : ''
 }
@@ -349,51 +350,9 @@ export function formatToTs(
   data: Visitor['data'],
   { transformEnumName = (s) => s }: { transformEnumName?: (name: string) => string } = {}
 ) {
+  const option = { transformEnumName }
   return data
-    .map((x) => {
-      const enumBodyString = x.enums
-        .map((enumData) => {
-          if (enumData.value.type === 'primitive') {
-            const comment =
-              enumData.label?.value != null
-                ? `  /**
-   * ${enumData.label.value}
-   */`
-                : ''
-            return `${comment ? `${comment}\n` : ''}  ${enumData.name} = ${enumData.value.raw},`
-          }
-          return ''
-        })
-        .filter(Boolean)
-        .join('\n')
-      if (!enumBodyString) {
-        return ''
-      }
-
-      const name = transformEnumName(x.enumClass)
-      const optionsString = x.enums
-        .map((enumData) => {
-          if (enumData.value.type === 'primitive' && enumData.label?.raw) {
-            return `  { label: ${enumData.label?.raw}, value: ${name}[${JSON.stringify(enumData.name)}] },`
-          }
-          return ''
-        })
-        .filter(Boolean)
-        .join('\n')
-
-      return `
-export const enum ${name} {
-${enumBodyString}
-}
-${
-  optionsString
-    ? `export const ${pascalCase(name + ' Options')} = [
-${optionsString}
-]`
-    : ''
-}
-`.trim()
-    })
+    .map((item) => formatItemToTs(item, option))
     .filter(Boolean)
     .join('\n')
 }

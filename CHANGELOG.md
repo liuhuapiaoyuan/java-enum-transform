@@ -1,4 +1,4 @@
-## [1.0.4] 2023-03-10
+## [1.0.6] 2023-03-10
 
 
 ### feat
@@ -7,6 +7,10 @@
 - A(B,C)的识别=》 A为代码，B为vale C为label
 - A(B)的识别=》 A为代码，A为vale B为label
 - A，无参数的识别=》 A为代码，A为vale 无label
+### 新增对comment注释的处理
+- 如果无参数，且有注释，则注释为label
+- 如果参数1， 且有注释+参数为英文，则 参数为value，注释为label 。  如果参数为中文，则无法当value，则替代注释为label
+
 
 ## [1.0.3](https://github.com/余聪/java-enum-transform/compare/v1.0.2...v1.0.3) (2021-12-09)
 
