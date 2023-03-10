@@ -4,10 +4,11 @@ import {
   parse,
   ClassDeclarationCtx,
   EnumDeclarationCtx,
-  EnumConstantCtx
+  EnumConstantCtx,
+  EnumConstantListCtx
 } from 'java-parser'
 import { pascalCase } from 'change-case'
-
+import * as fs from 'fs'
 function evalJava(code: string) {
   if (/^([-+]?)(\d+)L$/.test(code)) {
     code = RegExp.$1 + RegExp.$2
@@ -18,6 +19,18 @@ function evalJava(code: string) {
     e.message = `Eval 执行 ${JSON.stringify(code)} 错误：${e.message}`
     throw e
   }
+}
+
+// 解析各种形态的comment
+function formatComment(rawComment: string) {
+  // 识别 /** */
+  let reg1 = new RegExp(/\/\*+[\/n\*\s]*([^\/n\*\s]*)[\/n\*\s]*\*+\//)
+  // 识别 "//"
+  let reg2 = new RegExp(/\/\/[\/n\*\s]*([^\/n\*\s]*)/)
+  if (rawComment.trimStart().startsWith('//')) {
+    return reg2.exec(rawComment)?.[1]
+  }
+  return reg1.exec(rawComment)?.[1]
 }
 
 class ExpressionValueVisitor extends BaseJavaCstVisitorWithDefaults {
@@ -138,6 +151,9 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
     enums: []
   }
 
+  // 修复第一行的comment
+  private firstEnumComment = ''
+
   startVisit(fn?) {
     this.state.visiting = true
 
@@ -191,44 +207,64 @@ class Visitor extends BaseJavaCstVisitorWithDefaults {
   enumDeclaration(ctx: EnumDeclarationCtx, param?: any): any {
     if (this.isVisiting()) {
       this.state.enumClass = ctx.typeIdentifier[0].children.Identifier[0].image
+      // 此处修复第一行的comment
+      this.firstEnumComment = ctx.enumBody?.[0].children?.enumConstantList?.[0].leadingComments?.[0].image
       return super.enumDeclaration(ctx, param)
     }
   }
-
-  enumConstant(ctx: EnumConstantCtx, param?: any): any {
+  enumConstantList(ctx: EnumConstantListCtx, param?: any) {
     if (this.isVisiting()) {
-      // 五参数
-      let result = {
-        name: ctx.Identifier[0].image,
-        value: {
-          type: 'primitive',
-          value: ctx.Identifier[0].image,
-          raw: `"${ctx.Identifier[0].image}"`
-        },
-        label: undefined
-      }
-      /*     if (!ctx.argumentList?.[0]) {
-        return
-      } */
-      const paramsLength = ctx.argumentList?.[0]?.children?.expression?.length ?? 0
-
-      if (paramsLength == 0) {
-        // 当参数长度是0的时候 也没有label 没有value
-        result.label = {
-          type: 'primitive',
-          value: ctx.Identifier[0].image,
-          raw: `"${ctx.Identifier[0].image}"`
+      ctx.enumConstant.map((enumConstant, zIndex) => {
+        let enumCtx = enumConstant.children
+        let comment = zIndex == 0 ? this.firstEnumComment : enumConstant?.leadingComments?.[0]?.image
+        comment = comment ? formatComment(comment) : undefined
+        let commentLabel = comment
+          ? {
+              type: 'primitive',
+              value: comment,
+              raw: `"${comment}"`
+            }
+          : undefined
+        let result = {
+          name: enumCtx.Identifier[0].image,
+          comment,
+          value: {
+            type: 'primitive',
+            value: enumCtx.Identifier[0].image,
+            raw: `"${enumCtx.Identifier[0].image}"`
+          },
+          label: comment ? commentLabel : undefined
         }
-      } else if (paramsLength == 1) {
-        // 参数长度为1的时候，第一个参数就是label
-        result.label = getExpressionValue(ctx.argumentList[0].children.expression[0])
-      } else if (paramsLength >= 2) {
-        // 第一个参数是VALUE，第二个参数是LABEL
-        result.value = getExpressionValue(ctx.argumentList[0].children.expression[0])
-        result.label = getExpressionValue(ctx.argumentList[0].children.expression[1])
-      }
-      this.state.enums.push(result)
+        const paramsLength = enumCtx.argumentList?.[0]?.children?.expression?.length ?? 0
+
+        if (paramsLength == 0) {
+          // 当参数长度是0的时候 也没有label 没有value
+          result.label = {
+            type: 'primitive',
+            value: enumCtx.Identifier[0].image,
+            raw: `"${enumCtx.Identifier[0].image}"`
+          }
+        } else if (paramsLength == 1) {
+          // 参数长度为1的时候，第一个参数就是label(如果說這個label是英文，可以当value 并且有comment的情况共)
+          let param1 = getExpressionValue(enumCtx.argumentList[0].children.expression[0])
+          //let isValidName = /^[^\d\W\s]+\w*$/.test(param1.value)
+          if (typeof commentLabel !== 'undefined' && param1.type == 'primitive') {
+            result.value = param1
+            result.label = param1
+          } else {
+            result.label = param1
+          }
+        } else if (paramsLength >= 2) {
+          // 第一个参数是VALUE，第二个参数是LABEL
+          result.value = getExpressionValue(enumCtx.argumentList[0].children.expression[0])
+          result.label = getExpressionValue(enumCtx.argumentList[0].children.expression[1])
+        }
+
+        this.state.enums.push(result)
+      })
     }
+
+    return super.enumConstantList(ctx, param)
   }
 }
 
@@ -280,6 +316,15 @@ export function formatItemToTs(
     })
     .filter(Boolean)
     .join('\n')
+  const labelsString = x.enums
+    .map((enumData) => {
+      if (enumData.value.type === 'primitive' && enumData.label?.raw) {
+        return `  {  ${enumData.value.raw}: ${enumData.name}  },`
+      }
+      return ''
+    })
+    .filter(Boolean)
+    .join('\n')
 
   return `
 export const enum ${name} {
@@ -289,7 +334,12 @@ ${
   optionsString
     ? `export const ${pascalCase(name + ' Options')} = [
 ${optionsString}
-]`
+]
+export const ${pascalCase(name + ' Labels')} = [
+  ${labelsString}
+]
+
+`
     : ''
 }
 `.trim()

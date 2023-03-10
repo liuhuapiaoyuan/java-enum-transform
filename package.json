@@ -4,7 +4,7 @@
   "description": "Java enum transform to typescript",
   "author": "from 余聪 <yucong@yuanfudao.com>",
   "scripts": {
-    "test": "npx jest",
+    "test": "npx jest parse-enum-code.test",
     "test:watch": "npm test -- --watch",
     "preversion": "npm test",
     "build": "npm run clean && run-p --print-label \"build:**\"",
@@ -83,11 +83,11 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
+    "java-parser": "^2.0.3",
     "change-case": "^4.1.2",
     "escape-string-regexp": "^4.0.0",
     "fs-extra": "^10.0.0",
     "globby": "^11.0.4",
-    "java-parser": "^1.4.0",
     "lazy-value": "^2.0.0"
   }
 }

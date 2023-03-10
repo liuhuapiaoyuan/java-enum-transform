@@ -16,8 +16,13 @@ import java.util.Optional;
  */
 public enum RecordingTaskStage {
 
+    /*
+    * 录题中
+    */
     RECORDING(1, "录题中"),
+    //  待审题
     SUBMITTED(2, "待审核"),
+    /*激活中*/
     TO_BE_REVISED(3,"驳回待修改"),
     AUDITED(4,"审核通过待标注"),
     PUBLISHED(5,"已发布"),
